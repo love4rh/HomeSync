@@ -1,3 +1,10 @@
+backup/
+temporary/
+target/
+
+.project
+.classpath
+
 *.class
 
 # Mobile Tools for Java (J2ME)
