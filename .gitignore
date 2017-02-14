@@ -1,6 +1,7 @@
 backup/
 temporary/
 target/
+.settings/
 
 .project
 .classpath
