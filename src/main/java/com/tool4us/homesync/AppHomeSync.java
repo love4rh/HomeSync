@@ -5,6 +5,9 @@ import java.awt.TrayIcon.MessageType;
 import java.awt.event.*;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
+
+import com.tool4us.util.FileDictionary;
+
 import javax.swing.JButton;
 
 
@@ -204,6 +207,8 @@ public class AppHomeSync extends JFrame
 	public static void main(String[] args)
     {
         new AppHomeSync();
+        
+        new FileDictionary("C:\\temp\\homesync").reload();
     }
 }
 

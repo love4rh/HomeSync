@@ -189,32 +189,32 @@ public class Logs
         _write(formatMsg(args), msgType);
     }
     
-    public static void writeInfo(Object ... args)
+    public static void info(Object ... args)
     {
         instance().write(NORMAL, args);
     }
     
-    public static void writeDebug(Object ... args)
+    public static void debug(Object ... args)
     {
         instance().write(DEBUG, args);
     }
 
-    public static void writeError(Object ... args)
+    public static void error(Object ... args)
     {
         instance().write(ERROR, args);
     }
 
-    public static void writeWarning(Object ... args)
+    public static void warning(Object ... args)
     {
         instance().write(WARNING, args);
     }
     
-    public static void writeFatal(Object ... args)
+    public static void fatal(Object ... args)
     {
         instance().write(FATAL, args);
     }
     
-    public static void writeTrace(Throwable e)
+    public static void trace(Throwable e)
     {
         StackTraceElement[] elem = e.getStackTrace();
         
@@ -231,6 +231,6 @@ public class Logs
               .append(elem[i]);
         }
 
-        writeError(sb.toString());
+        error(sb.toString());
     }
 }

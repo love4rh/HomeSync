@@ -128,22 +128,22 @@ public enum NetSetting
     {
         if( !_debugOn ) return;
         
-        Logs.writeDebug(sessionDesc(session), args);
+        Logs.debug(sessionDesc(session), args);
     }
     
     public void info(ISession session, Object ... args)
     {
-        Logs.writeInfo(sessionDesc(session), args);
+        Logs.info(sessionDesc(session), args);
     }
     
     public void warn(ISession session, Object ... args)
     {
-        Logs.writeWarning(sessionDesc(session), args);
+        Logs.warning(sessionDesc(session), args);
     }
     
     public void error(ISession session, Object ... args)
     {
-        Logs.writeError(sessionDesc(session), args);
+        Logs.error(sessionDesc(session), args);
     }
     
     public void trace(ISession session, Throwable e)

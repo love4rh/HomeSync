@@ -89,7 +89,7 @@ public class CommonExecutor extends ProtocolExecutor
             }
             catch( Exception xe )
             {
-                Logs.writeTrace(xe); 
+                Logs.trace(xe); 
             }
         }
     }
