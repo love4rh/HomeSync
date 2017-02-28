@@ -38,33 +38,44 @@ import java.nio.file.attribute.*;
 import java.io.*;
 import java.util.*;
 
+
+
 /**
  * Example to watch a directory (or tree) for changes to files.
  */
-
-public class WatchDir {
-
+public class DirectoryMonitor
+{
     private final WatchService watcher;
-    private final Map<WatchKey,Path> keys;
+    private final Map<WatchKey, Path> keys;
     private final boolean recursive;
     private boolean trace = false;
+    private DirectoryCallback _callback = null;
 
     @SuppressWarnings("unchecked")
-    static <T> WatchEvent<T> cast(WatchEvent<?> event) {
-        return (WatchEvent<T>)event;
+    static <T> WatchEvent<T> cast(WatchEvent<?> event)
+    {
+        return (WatchEvent<T>) event;
     }
 
     /**
      * Register the given directory with the WatchService
      */
-    private void register(Path dir) throws IOException {
+    private void register(Path dir) throws IOException
+    {
         WatchKey key = dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-        if (trace) {
+
+        if (trace)
+        {
             Path prev = keys.get(key);
-            if (prev == null) {
+
+            if (prev == null)
+            {
                 System.out.format("register: %s\n", dir);
-            } else {
-                if (!dir.equals(prev)) {
+            }
+            else
+            {
+                if (!dir.equals(prev))
+                {
                     System.out.format("update: %s -> %s\n", prev, dir);
                 }
             }
@@ -76,9 +87,11 @@ public class WatchDir {
      * Register the given directory, and all its sub-directories, with the
      * WatchService.
      */
-    private void registerAll(final Path start) throws IOException {
+    private void registerAll(final Path start) throws IOException
+    {
         // register directory and sub-directories
-        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(start, new SimpleFileVisitor<Path>()
+        {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
                 throws IOException
@@ -92,16 +105,21 @@ public class WatchDir {
     /**
      * Creates a WatchService and registers the given directory
      */
-    WatchDir(Path dir, boolean recursive) throws IOException {
+    DirectoryMonitor(Path dir, boolean recursive, DirectoryCallback callback) throws IOException
+    {
         this.watcher = FileSystems.getDefault().newWatchService();
-        this.keys = new HashMap<WatchKey,Path>();
+        this.keys = new HashMap<WatchKey, Path>();
         this.recursive = recursive;
+        this._callback = callback;
 
-        if (recursive) {
+        if (recursive)
+        {
             System.out.format("Scanning %s ...\n", dir);
             registerAll(dir);
             System.out.println("Done.");
-        } else {
+        }
+        else
+        {
             register(dir);
         }
 
@@ -112,28 +130,36 @@ public class WatchDir {
     /**
      * Process all events for keys queued to the watcher
      */
-    void processEvents() {
-        for (;;) {
-
+    void processEvents()
+    {
+        for (;;)
+        {
             // wait for key to be signalled
             WatchKey key;
-            try {
+            try
+            {
                 key = watcher.take();
-            } catch (InterruptedException x) {
+            }
+            catch (InterruptedException x)
+            {
                 return;
             }
 
             Path dir = keys.get(key);
-            if (dir == null) {
+
+            if (dir == null)
+            {
                 System.err.println("WatchKey not recognized!!");
                 continue;
             }
 
-            for (WatchEvent<?> event: key.pollEvents()) {
-                WatchEvent.Kind kind = event.kind();
+            for (WatchEvent<?> event: key.pollEvents())
+            {
+                WatchEvent.Kind<?> kind = event.kind();
 
                 // TBD - provide example of how OVERFLOW event is handled
-                if (kind == OVERFLOW) {
+                if (kind == OVERFLOW)
+                {
                     continue;
                 }
 
@@ -143,39 +169,60 @@ public class WatchDir {
                 Path child = dir.resolve(name);
 
                 // print out event
-                System.out.format("%s: %s\n", event.kind().name(), child);
+                System.out.format("%s: %s\n", kind.name(), child);
+                if( _callback != null )
+                    _callback.onChange(kind, child);
 
                 // if directory is created, and watching recursively, then
                 // register it and its sub-directories
-                if (recursive && (kind == ENTRY_CREATE)) {
-                    try {
-                        if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+                if (recursive && (kind == ENTRY_CREATE))
+                {
+                    try
+                    {
+                        if (Files.isDirectory(child, NOFOLLOW_LINKS))
+                        {
                             registerAll(child);
                         }
-                    } catch (IOException x) {
+                    }
+                    catch (IOException x)
+                    {
                         // ignore to keep sample readbale
                     }
                 }
             }
 
             // reset key and remove from set if directory no longer accessible
-            boolean valid = key.reset();
-            if (!valid) {
+            if (!key.reset())
+            {
                 keys.remove(key);
 
                 // all directories are inaccessible
-                if (keys.isEmpty()) {
+                if (keys.isEmpty())
                     break;
-                }
             }
         }
     }
+    
+    public void close()
+    {
+        try
+        {
+            this.watcher.close();
+            this.keys.clear();
+        }
+        catch( IOException e )
+        {
+            e.printStackTrace();
+        }
+    }
 
-    static void usage() {
+    static void usage()
+    {
         System.err.println("usage: java WatchDir [-r] dir");
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException
+    {
         boolean recursive = true;
         String dirToMonitor = "C:\\temp\\homesync";
         
@@ -187,7 +234,8 @@ public class WatchDir {
         else
         {
             int dirArg = 0;
-            if (args[0].equals("-r")) {
+            if (args[0].equals("-r"))
+            {
                 if (args.length < 2)
                     usage();
                 recursive = true;
@@ -199,6 +247,14 @@ public class WatchDir {
 
         // register directory and process its events
         Path dir = Paths.get(dirToMonitor);
-        new WatchDir(dir, recursive).processEvents();
+        DirectoryMonitor dm = new DirectoryMonitor(dir, recursive, null);
+        
+        dm.processEvents();
     }
+}
+
+
+interface DirectoryCallback
+{
+    void onChange(WatchEvent.Kind<?> kind, Path path);
 }

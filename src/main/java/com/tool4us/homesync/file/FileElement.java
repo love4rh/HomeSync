@@ -1,4 +1,4 @@
-package com.tool4us.util;
+package com.tool4us.homesync.file;
 
 import java.io.File;
 
@@ -27,6 +27,14 @@ public class FileElement
 
         _fileSize = file.length();
         _modifiedTime = file.lastModified();
+    }
+    
+    // 테스팅을 위한 생성자
+    public FileElement(String uniquePathName, long fileSize, long mTime)
+    {
+        _uniquePathName = uniquePathName;
+        _fileSize = fileSize;
+        _modifiedTime = mTime;
     }
     
     public static String makeKey(String uniquePath)

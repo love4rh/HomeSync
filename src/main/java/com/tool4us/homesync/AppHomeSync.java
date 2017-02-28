@@ -1,18 +1,20 @@
 package com.tool4us.homesync;
 
+import static com.tool4us.homesync.Repository.RT;
+
 import java.awt.*;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.*;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
-import com.tool4us.util.FileDictionary;
-
 import javax.swing.JButton;
 
 
+
 /**
- *
+ * Tray Icon: 실행 중지 상태, 실행 중 상태, 동기화 중, 오류 발생
+ * 
  * @author TurboK
  */
 @SuppressWarnings("serial")
@@ -22,6 +24,8 @@ public class AppHomeSync extends JFrame
 	protected Image			_appIcon;
 	protected TrayIcon		_trayIcon;
     protected SystemTray	_systemTray;
+    
+    protected final HomeSyncServer    _server = new HomeSyncServer();
 
     
     protected AppHomeSync()
@@ -204,11 +208,24 @@ public class AppHomeSync extends JFrame
 		System.out.println("mouseExited");
 	}
 	
+	public void startServer() throws Exception
+	{
+	    _server.start(6070, 1, 4);
+	}
+	
 	public static void main(String[] args)
     {
-        new AppHomeSync();
-        
-        new FileDictionary("C:\\temp\\homesync").reload();
+	    AppHomeSync appMain = new AppHomeSync();
+	    
+	    try
+	    {
+	        RT.setUpRoot("C:\\temp\\homesync");
+	        appMain.startServer();
+	    }
+	    catch(Exception xe)
+	    {
+	        xe.printStackTrace();
+	    }
     }
 }
 

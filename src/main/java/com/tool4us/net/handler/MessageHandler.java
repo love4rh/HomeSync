@@ -49,7 +49,12 @@ public abstract class MessageHandler
         CommonExecutor.writeReplyProtocol(rMsg, errCode);
     }
     
-    
+
+    /**
+     * 사용한 자원 반환. 멤버 변수 등이 있는 경우 구현 필요.
+     */
+    public abstract void clear();
+
     /**
      * 프로토콜의 유효성 판단. 제대로 입력된 프로토콜인지 체크함
      * 
@@ -67,9 +72,4 @@ public abstract class MessageHandler
      * @return 결과를 반환하기 위한 프로토콜 객체 반환. null이면 반환할 결과가 없는 것으로 간주함.
      */
     public abstract Protocol work(Protocol msg, ISession session) throws Exception;
-    
-    /**
-     * 사용한 자원 반환. 멤버 변수 등이 있는 경우 구현 필요.
-     */
-    public abstract void clear();
 }
