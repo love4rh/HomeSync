@@ -38,6 +38,7 @@ public class RequestFileEvent extends MessageHandler
     @Override
     public ErrorCode setAndCheck(Protocol msg, ISession session) throws Exception
     {
+        // 파일 상대 경로
         if( msg.sizeOfParam() < 1 )
         {
             return ErrorCode.errApiInsufficientParameter;
@@ -49,29 +50,15 @@ public class RequestFileEvent extends MessageHandler
     @Override
     public Protocol work(Protocol msg, ISession session) throws Exception
     {
-        String jsonStr = (String) msg.getParameter(0);
-        FileDictionary fd = FileDictionary.fromJson(jsonStr);
+        String uniquePath = (String) msg.getParameter(0);
+                
+        NS.info(session, "Compare");
         
-        List<CompResult> diff = RT.getFileDictionary().diffList(fd);
-        
-        NS.info(session, "Compare", diff.size());
-        
-        Protocol rMsg = msg.createReply();
+        Protocol rMsg = Protocol.newProtocol(TypeConstant.RES_FILE);
         
         rMsg.addParameter((byte) 0x01);
-        rMsg.addParameter(diff.size());
-
-        for(CompResult elem : diff)
-        {
-            int compResult = elem.getCompResult();
-            FileElement fe = (FileElement) elem.getRelatedData();
-            
-            rMsg.addParameter(compResult);
-            rMsg.addParameter(fe.getKey());
-            rMsg.addParameter(fe.getFileSize());
-            rMsg.addParameter(fe.getModifiedTime());
-            rMsg.addParameter(fe.isDirectory() ? 1 : 0);
-        }
+        
+        rMsg.addParameter(paramVal);
         
         return rMsg;
     }
