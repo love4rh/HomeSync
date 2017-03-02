@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 
 
 /**
@@ -21,12 +25,30 @@ public class FileDictionary
     private Map<String, FileElement>    _fileMap = null;
     
     
+    public FileDictionary()
+    {
+        //
+    }
+    
     public FileDictionary(String rootPath)
     {
         _rootFile = new File(rootPath);
         _rootPath = _rootFile.getAbsolutePath();
         
         _fileMap = new TreeMap<String, FileElement>();
+    }
+    
+    public void setUpRoot(String rootPath)
+    {
+        if( rootPath.equals(_rootPath) )
+            return;
+        
+        _rootFile = new File(rootPath);
+        _rootPath = _rootFile.getAbsolutePath();
+        
+        _fileMap = new TreeMap<String, FileElement>();
+        
+        reload();
     }
     
     public void reload()
@@ -39,8 +61,6 @@ public class FileDictionary
             _fileMap.clear();
         }
         
-        System.out.println("ROOT: " + _rootPath);
-        
         navigate(_rootFile);
     }
     
@@ -51,8 +71,6 @@ public class FileDictionary
             FileElement elem = new FileElement(_rootPath, file);
             
             _fileMap.put(elem.getKey(), elem);
-            
-            elem.debugOut();
         }
     }
     
@@ -66,12 +84,11 @@ public class FileDictionary
         }
     }
     
-    // for testing
-    public void addEntry(String uniquePathName, long fileSize, long mTime)
+    public void addEntry(String uniquePathName, long fileSize, long mTime, boolean directory)
     {
         synchronized(_fileMap)
         {
-            FileElement elem = new FileElement(uniquePathName, fileSize, mTime);
+            FileElement elem = new FileElement(uniquePathName, fileSize, mTime, directory);
             
             _fileMap.put(elem.getKey(), elem);
         }
@@ -152,8 +169,9 @@ public class FileDictionary
                 FileElement e1 = this.get( k1.get(i) );
                 FileElement e2 = that.get( k2.get(j) );
                 
-                dList.add(new CompResult(e1, e1.equals(e2) ? CompResult.BOTH_HAVE : CompResult.DIFF_HAVE));
-                
+                if( !e1.equals(e2) )
+                    dList.add(new CompResult(e1, CompResult.DIFF_HAVE));
+
                 i += 1;
                 j += 1;
             }
@@ -172,12 +190,79 @@ public class FileDictionary
             }
         }
         
+        while( i < k1.size() )
+        {
+            dList.add(new CompResult(this.get(k1.get(i)), CompResult.I_HAVE));
+            i += 1;
+        }
+        
         while( j < k2.size() )
         {
             dList.add(new CompResult(that.get(k2.get(j)), CompResult.YOU_HAVE));
+            j += 1;
         }
         
         return dList;
+    }
+    
+    public void debugOut()
+    {
+        System.out.println("ROOT: " + _rootPath);
+        
+        for(FileElement elem : _fileMap.values())
+        {
+            elem.debugOut();
+        }
+    }
+    
+    public String toJson()
+    {
+        if( _rootPath == null )
+            return null;
+        
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("{")
+          .append("\"version\":1")        
+          .append(", \"rootPath\":\"").append(_rootPath.replace('\\', '/')).append("\"");
+        
+        boolean first = true;
+        sb.append(",\"fileMap\":[");
+        for(FileElement elem : _fileMap.values())
+        {
+            if( !first )
+                sb.append(",");
+            
+            sb.append(elem.toJson());
+            first = false;
+        }
+        sb.append("]");
+        
+        sb.append("}");
+        
+        return sb.toString();
+    }
+    
+    public static FileDictionary fromJson(String jsonStr)
+    {
+        JsonObject obj = new JsonParser().parse(jsonStr).getAsJsonObject();
+        
+        JsonElement elem = obj.get("rootPath");
+        FileDictionary fd = new FileDictionary(elem.getAsString());
+        
+        elem = obj.get("fileMap");
+
+        for(JsonElement f : elem.getAsJsonArray())
+        {
+            JsonObject fo = f.getAsJsonObject();
+
+            fd.addEntry( fo.get("pathName").getAsString()
+                       , fo.get("size").getAsLong()
+                       , fo.get("time").getAsLong()
+                       , fo.get("directory").getAsInt() == 1);
+        }
+        
+        return fd;
     }
     
     public static void main(String[] args)
@@ -185,21 +270,21 @@ public class FileDictionary
         FileDictionary d1 = new FileDictionary("/home/server");
         FileDictionary d2 = new FileDictionary("/home/client");
         
-        d1.addEntry("/f1.txt", 1, 2);
-        d1.addEntry("/d1", 0, 3);
-        d1.addEntry("/d1/f2.txt", 2, 3);
-        d1.addEntry("/d1/f3.txt", 2, 4);
-        d1.addEntry("/d2", 0, 3);
-        d1.addEntry("/d2/f5.txt", 2, 3);
+        d1.addEntry("/f1.txt", 1, 2, false);
+        d1.addEntry("/d1", 0, 3, true);
+        d1.addEntry("/d1/f2.txt", 2, 3, false);
+        d1.addEntry("/d1/f3.txt", 2, 4, false);
+        d1.addEntry("/d2", 0, 3, true);
+        d1.addEntry("/d2/f5.txt", 2, 3, false);
         
-        d2.addEntry("/a1.txt", 1, 2);
-        d2.addEntry("/f1.txt", 1, 2);
-        d2.addEntry("/d1", 0, 3);
-        d2.addEntry("/d1/f3.txt", 2, 3);
-        d2.addEntry("/d2", 0, 3);
-        d2.addEntry("/d2/f4.txt", 2, 3);
-        d2.addEntry("/d2/f5.txt", 2, 3);
-        d2.addEntry("/d3", 2, 4);
+        d2.addEntry("/a1.txt", 1, 2, false);
+        d2.addEntry("/f1.txt", 1, 2, false);
+        d2.addEntry("/d1", 0, 3, true);
+        d2.addEntry("/d1/f3.txt", 2, 3, false);
+        d2.addEntry("/d2", 0, 3, true);
+        d2.addEntry("/d2/f4.txt", 2, 3, false);
+        d2.addEntry("/d2/f5.txt", 2, 3, false);
+        d2.addEntry("/d3", 2, 4, true);
         
         List<CompResult> dList = d1.diffList(d2);
         

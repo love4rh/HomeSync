@@ -12,6 +12,7 @@ public class FileElement
     private String      _uniquePathName = null;
     private long        _fileSize = 0L;
     private long        _modifiedTime = 0L;
+    private boolean     _isDirectory = false;
     
     
     public FileElement(String rootPath, File file)
@@ -23,6 +24,7 @@ public class FileElement
         
         String uniquePath = absPath.substring(rootPath.length());
         
+        _isDirectory = file.isDirectory();
         _uniquePathName = makeKey(uniquePath);
 
         _fileSize = file.length();
@@ -30,11 +32,12 @@ public class FileElement
     }
     
     // 테스팅을 위한 생성자
-    public FileElement(String uniquePathName, long fileSize, long mTime)
+    public FileElement(String uniquePathName, long fileSize, long mTime, boolean isDirectory)
     {
         _uniquePathName = uniquePathName;
         _fileSize = fileSize;
         _modifiedTime = mTime;
+        _isDirectory = isDirectory;
     }
     
     public static String makeKey(String uniquePath)
@@ -72,6 +75,11 @@ public class FileElement
         return _modifiedTime;
     }
     
+    public boolean isDirectory()
+    {
+        return _isDirectory;
+    }
+    
     @Override
     public boolean equals(Object obj)
     {
@@ -94,13 +102,29 @@ public class FileElement
         return _uniquePathName.hashCode();
     }
     
+    public Object toJson()
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("{\"pathName\":")
+          .append("\"").append(_uniquePathName).append("\"")
+          .append(",\"size\":").append(_fileSize)
+          .append(",\"time\":").append(_modifiedTime)
+          .append(",\"directory\":").append(_isDirectory ? 1 : 0)
+          .append("}")
+          ;
+        
+        return sb.toString();
+    }
+    
     public void debugOut()
     {
         System.out.println(getKey() + ": "
             + getFileName() + " | "
             + getUniquePath() + " | "
             + _fileSize + " | "
-            + _modifiedTime
+            + _modifiedTime + " | "
+            + _isDirectory
         );
     }
 }

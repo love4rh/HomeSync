@@ -1,4 +1,4 @@
-package com.tool4us.homesync;
+package com.tool4us.homesync.file;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -6,8 +6,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent.Kind;
-
-import com.tool4us.homesync.file.FileDictionary;
 
 
 
@@ -20,7 +18,6 @@ public enum Repository implements DirectoryCallback
     RT;
     
     private FileDictionary      _fileDict;
-    
     private DirectoryMonitor    _dirMonitor;
     
     
@@ -54,6 +51,11 @@ public enum Repository implements DirectoryCallback
             _dirMonitor.close();
             _dirMonitor = null;
         }
+    }
+    
+    public FileDictionary getFileDictionary()
+    {
+        return _fileDict;
     }
 
     @Override

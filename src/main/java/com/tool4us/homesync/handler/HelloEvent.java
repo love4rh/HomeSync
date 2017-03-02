@@ -1,5 +1,7 @@
 package com.tool4us.homesync.handler;
 
+import static com.tool4us.net.common.NetSetting.NS;
+
 import com.tool4us.net.common.ErrorCode;
 import com.tool4us.net.common.ISession;
 import com.tool4us.net.common.Protocol;
@@ -10,8 +12,7 @@ import com.tool4us.net.handler.MessageHandler;
 
 
 /**
- * Echo된 메시지 처리 핸들러
- * 파라미터는 String으로 메시지 하나 받음.
+ * 클라리언트가 서버에 접속 후 서버 확인을 위하여 보내는 메시지
  * 
  * @author TurboK
  */
@@ -45,8 +46,15 @@ public class HelloEvent extends MessageHandler
     {
         String text = (String) msg.getParameter(0);
         
-        System.out.println("[CLIENT] " + text);
+        NS.info(session, "Hello", text);
         
-        return null;
+        Protocol rMsg = msg.createReply();
+        
+        // TODO 식별 코드 같은 것을 보냈으면 좋겠는데...
+        rMsg.addParameter((byte) 0x01);
+        rMsg.addParameter(1);
+        // rMsg.addParameter(paramVal);
+        
+        return rMsg;
     }
 }

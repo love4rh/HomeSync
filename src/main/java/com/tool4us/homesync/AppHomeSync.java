@@ -1,14 +1,23 @@
 package com.tool4us.homesync;
 
-import static com.tool4us.homesync.Repository.RT;
+import static com.tool4us.homesync.file.Repository.RT;
 
 import java.awt.*;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
+import com.tool4us.homesync.file.FileDictionary;
+import com.tool4us.logging.Logs;
+
 import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 
 
@@ -21,11 +30,15 @@ import javax.swing.JButton;
 public class AppHomeSync extends JFrame
 						 implements MouseListener, ActionListener
 {
+    protected final static AppHomeSync   _appMain = new AppHomeSync();
+
+    protected final HomeSyncServer    _server = new HomeSyncServer();
+    
 	protected Image			_appIcon;
 	protected TrayIcon		_trayIcon;
     protected SystemTray	_systemTray;
     
-    protected final HomeSyncServer    _server = new HomeSyncServer();
+    private JTextField      _textFolder;
 
     
     protected AppHomeSync()
@@ -62,17 +75,32 @@ public class AppHomeSync extends JFrame
     
     private void initializeControls()
     {
-    	setSize(340, 248);
+    	setSize(358, 269);
     	
     	getContentPane().setLayout(null);
         
         JButton btnNewButton = new JButton("Change Icon");
-        btnNewButton.setBounds(12, 10, 144, 55);
+        btnNewButton.setBounds(12, 183, 144, 38);
         getContentPane().add(btnNewButton);
         
         JButton btnPopUpMessage = new JButton("Pop up Message");
-        btnPopUpMessage.setBounds(12, 75, 144, 55);
+        btnPopUpMessage.setBounds(186, 183, 144, 38);
         getContentPane().add(btnPopUpMessage);
+        
+        JLabel lblFolderToBe = new JLabel("Folder for Sync:");
+        lblFolderToBe.setBounds(12, 10, 124, 15);
+        getContentPane().add(lblFolderToBe);
+        
+        _textFolder = new JTextField();
+        _textFolder.setBounds(12, 29, 271, 21);
+        getContentPane().add(_textFolder);
+        _textFolder.setColumns(10);
+        
+        JButton btnFolder = new JButton("...");
+        btnFolder.setBounds(285, 28, 45, 23);
+        btnFolder.setActionCommand("FOLDER");
+        btnFolder.addActionListener(this);
+        getContentPane().add(btnFolder);
         
         btnNewButton.addActionListener( new ActionListener()
         {
@@ -108,7 +136,7 @@ public class AppHomeSync extends JFrame
                 public void actionPerformed(ActionEvent e)
                 {
                     System.out.println("Exiting....");
-                    System.exit(0);
+                    _appMain.stopServer();
                 }
             };
 
@@ -168,6 +196,11 @@ public class AppHomeSync extends JFrame
 		{
 			System.out.println("clicked tray's popup message");
 		}
+		else if( "FOLDER".equals(actCmd) )
+		{
+		    System.out.println("select folder");
+		    // _textFolder
+		}
 	}
 
 	@Override
@@ -213,14 +246,68 @@ public class AppHomeSync extends JFrame
 	    _server.start(6070, 1, 4);
 	}
 	
+	public void stopServer()
+	{
+	    _server.shutdown();
+	    System.exit(0);
+	}
+	
+	private static void startConsole()
+    {   
+        String lineCmd = null;
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        
+        while( true )
+        {
+            System.out.print(">> ");
+            
+            // Getting command line.
+            try
+            {
+                lineCmd = in.readLine();
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+                break;
+            }
+            
+            if( lineCmd == null )
+                break;
+            
+            if( lineCmd.isEmpty() )
+                continue;
+
+            if( "t1".equals(lineCmd) )
+            {
+                System.out.println( RT.getFileDictionary().toJson() );
+            }
+            else if( "t2".equals(lineCmd) )
+            {
+                String jsonStr = "{\"version\":1, \"rootPath\":\"C:/temp/homesync\",\"fileMap\":[{\"pathName\":\"/bbb.txt\",\"size\":3,\"time\":1488158126076},{\"pathName\":\"/c1\",\"size\":4096,\"time\":1488158332776},{\"pathName\":\"/c1/c2\",\"size\":0,\"time\":1488158183287},{\"pathName\":\"/c1/icons\",\"size\":0,\"time\":1488158362727},{\"pathName\":\"/c1/icons/128.png\",\"size\":3902,\"time\":1346881299874},{\"pathName\":\"/c1/icons/16-2.png\",\"size\":527,\"time\":1346881299874},{\"pathName\":\"/c1/icons/16.png\",\"size\":527,\"time\":1346881299874},{\"pathName\":\"/c1/icons/32.png\",\"size\":1062,\"time\":1346881299875},{\"pathName\":\"/c1/icons/64.png\",\"size\":2240,\"time\":1346881299875},{\"pathName\":\"/c1/index.html\",\"size\":184,\"time\":1488158346254},{\"pathName\":\"/c1/rainbowsky.jpg\",\"size\":119272,\"time\":1346881299876},{\"pathName\":\"/c1/style.css\",\"size\":38701,\"time\":1346881299337}]}";
+                
+                FileDictionary.fromJson(jsonStr).debugOut();
+            }
+            // 종료
+            else if( "q".equals(lineCmd) || "quit".equals(lineCmd) )
+            {   
+                System.exit(0);
+            }
+        }
+    }
+	
 	public static void main(String[] args)
     {
-	    AppHomeSync appMain = new AppHomeSync();
-	    
 	    try
 	    {
+	        Logs.initDefault(null, "HomeSync");
+	        Logs.addConsoleLogger();
+
 	        RT.setUpRoot("C:\\temp\\homesync");
-	        appMain.startServer();
+
+	        _appMain.startServer();
+	        
+	        startConsole();
 	    }
 	    catch(Exception xe)
 	    {

@@ -1,5 +1,6 @@
 package com.tool4us.net.client;
 
+import java.net.InetAddress;
 import java.net.SocketAddress;
 
 import com.tool4us.net.common.IChannelEventHandle;
@@ -91,7 +92,7 @@ public class TCPClient implements IChannelEventHandle
      * 
      * @param host
      * @param port
-     * @param timeoutMs 1이상일때 유효하며, 0이하일 경우 default timeout값이 적용된다.
+     * @param timeoutMs 1이상일때 유효하며, 0이하일 경우 default timeout값이 적용된다. ms 단위
      * @return
      * @throws Exception
      */
@@ -194,6 +195,24 @@ public class TCPClient implements IChannelEventHandle
         _workerGroup = null;
         _channel = null;
         _connected = -1;
+    }
+    
+    public String localAddress()
+    {
+        String ipAddr = null;
+        
+        try
+        {           
+            InetAddress ip = InetAddress.getLocalHost();
+
+            ipAddr = ip.getHostAddress();
+        }      
+        catch(Exception xe)
+        {    
+            xe.printStackTrace();
+        }
+
+        return ipAddr;
     }
     
     public SocketAddress remoteAddress()

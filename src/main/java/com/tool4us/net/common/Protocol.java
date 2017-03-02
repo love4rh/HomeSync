@@ -147,6 +147,10 @@ public class Protocol
 		return _paramList == null ? null : _paramList.get(index);
 	}
 	
+	/**
+	 * 추가할 수 있는 파라미터 형태: File, String, Integer, Long, Float, Double, Byte 
+	 * @param paramVal
+	 */
 	public void addParameter(Object paramVal)
 	{
 		if( _paramList == null )

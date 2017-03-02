@@ -144,8 +144,17 @@ public class Logs
         sb.append("[");
         for(Object o : args)
         {
-            sb.append(o == null ? "null" : o.toString())
-              .append(_sep_);
+            if( o instanceof Object[] )
+            {
+                for(Object o2 : (Object[]) o)
+                    sb.append(o2 == null ? "null" : o2.toString())
+                      .append(_sep_);
+            }
+            else
+            {
+                sb.append(o == null ? "null" : o.toString())
+                  .append(_sep_);
+            }
         }
         sb.append("]");
         

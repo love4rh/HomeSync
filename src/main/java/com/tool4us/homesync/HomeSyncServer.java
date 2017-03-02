@@ -1,6 +1,6 @@
 package com.tool4us.homesync;
 
-import static com.tool4us.homesync.Repository.RT;
+import static com.tool4us.homesync.file.Repository.RT;
 
 import com.tool4us.net.server.ClientSession;
 import com.tool4us.net.server.CommonSession;
