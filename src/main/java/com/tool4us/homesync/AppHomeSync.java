@@ -303,7 +303,7 @@ public class AppHomeSync extends JFrame
 	        Logs.initDefault(null, "HomeSync");
 	        Logs.addConsoleLogger();
 
-	        RT.setUpRoot("C:\\temp\\homesync");
+	        RT.setUpRoot("/Volumes/DataBox/Temporary/HomeSync");
 
 	        _appMain.startServer();
 	        

@@ -34,7 +34,7 @@ public class HomeSyncClient extends TCPClient
         // TODO 이전 수행 정보 읽어 오기. _lastServer 등 설정
         
         _lastServer = "192.168.0.24";
-        _rootPath = "C:\\temp\\clientsync";
+        _rootPath = "/Volumes/DataBox/Temporary/ClientSync";
     }
     
     public void start() throws Exception
@@ -51,7 +51,7 @@ public class HomeSyncClient extends TCPClient
     
     public boolean findServer(int port)
     {
-        String localIp = this.localAddress();
+        String localIp = this.getLocalServerIp(); // localAddress();
         Protocol helloMsg = Protocol.newProtocol(TypeConstant.HELLO, localIp);
         
         localIp = localIp.substring(0, localIp.lastIndexOf('.') + 1);

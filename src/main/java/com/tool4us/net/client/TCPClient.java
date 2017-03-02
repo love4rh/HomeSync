@@ -1,7 +1,9 @@
 package com.tool4us.net.client;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.SocketAddress;
+import java.util.Enumeration;
 
 import com.tool4us.net.common.IChannelEventHandle;
 import com.tool4us.net.common.ICloseHandle;
@@ -197,13 +199,44 @@ public class TCPClient implements IChannelEventHandle
         _connected = -1;
     }
     
+    public String getLocalServerIp()
+    {
+    	try
+    	{
+    	    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+    	    {
+    	        NetworkInterface intf = en.nextElement();
+    	        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+    	        {
+    	            InetAddress inetAddress = enumIpAddr.nextElement();
+    	            
+    	            if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress())
+    	            {
+    	            	return inetAddress.getHostAddress().toString();
+    	            }
+    	        }
+    	    }
+    	}
+    	catch (Exception xe)
+    	{
+    		xe.printStackTrace();
+    	}
+    	
+    	return null;
+    }
+    
     public String localAddress()
     {
         String ipAddr = null;
         
         try
-        {           
+        {
             InetAddress ip = InetAddress.getLocalHost();
+            InetAddress ip2 = InetAddress.getLoopbackAddress();
+            
+            String hostName = ip.getHostName();
+            InetAddress ip3 = InetAddress.getByName(hostName);
+            InetAddress[] ip4 = InetAddress.getAllByName(hostName);
 
             ipAddr = ip.getHostAddress();
         }      

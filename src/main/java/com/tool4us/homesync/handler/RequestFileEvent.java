@@ -58,7 +58,7 @@ public class RequestFileEvent extends MessageHandler
         
         rMsg.addParameter((byte) 0x01);
         
-        rMsg.addParameter(paramVal);
+        // rMsg.addParameter(paramVal);
         
         return rMsg;
     }
