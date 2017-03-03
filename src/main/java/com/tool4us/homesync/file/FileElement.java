@@ -90,10 +90,12 @@ public class FileElement
             return true;
         
         FileElement that = (FileElement) obj;
-
-        return this._uniquePathName.equals(that._uniquePathName)
-                && this._fileSize == that._fileSize
-                && this._modifiedTime == that._modifiedTime;
+        
+        if( this._isDirectory != that._isDirectory
+                || !this._uniquePathName.equals(that._uniquePathName) )
+            return false;
+        
+        return this._isDirectory || (this._fileSize == that._fileSize && this._modifiedTime == that._modifiedTime);
     }
     
     @Override

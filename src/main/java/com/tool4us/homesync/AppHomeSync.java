@@ -1,5 +1,6 @@
 package com.tool4us.homesync;
 
+import static com.tool4us.util.CommonTool.CT;
 import static com.tool4us.homesync.file.Repository.RT;
 
 import java.awt.*;
@@ -14,6 +15,7 @@ import javax.swing.UIManager;
 
 import com.tool4us.homesync.file.FileDictionary;
 import com.tool4us.logging.Logs;
+import com.tool4us.util.AppSetting;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -34,6 +36,8 @@ public class AppHomeSync extends JFrame
 
     protected final HomeSyncServer    _server = new HomeSyncServer();
     
+    protected AppSetting    _setting;
+    
 	protected Image			_appIcon;
 	protected TrayIcon		_trayIcon;
     protected SystemTray	_systemTray;
@@ -44,10 +48,14 @@ public class AppHomeSync extends JFrame
     protected AppHomeSync()
     {
         super("HomeSync Server");
+        
+        _setting = new AppSetting( CT.getAppPath("homesync.cfg") );
 
         try
         {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            
+            _setting.load();
         }
         catch(Exception xe)
         {
@@ -248,8 +256,23 @@ public class AppHomeSync extends JFrame
 	
 	public void stopServer()
 	{
+	    try
+        {
+            _setting.save();
+        }
+        catch( Exception xe )
+        {
+            xe.printStackTrace();
+        }
+	    
 	    _server.shutdown();
+
 	    System.exit(0);
+	}
+	
+	public AppSetting appSetting()
+	{
+	    return _setting;
 	}
 	
 	private static void startConsole()
@@ -291,7 +314,7 @@ public class AppHomeSync extends JFrame
             // 종료
             else if( "q".equals(lineCmd) || "quit".equals(lineCmd) )
             {   
-                System.exit(0);
+                _appMain.stopServer();
             }
         }
     }
@@ -303,7 +326,8 @@ public class AppHomeSync extends JFrame
 	        Logs.initDefault(null, "HomeSync");
 	        Logs.addConsoleLogger();
 
-	        RT.setUpRoot("/Volumes/DataBox/Temporary/HomeSync");
+	        RT.setUpRoot( _appMain.appSetting().getValue("syncfolder", "C:\\temp\\homesync")
+	                , true );
 
 	        _appMain.startServer();
 	        

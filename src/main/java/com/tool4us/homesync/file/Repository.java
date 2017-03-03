@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent.Kind;
 
+import com.tool4us.task.ITask;
+import com.tool4us.task.TaskQueue;
+
 
 
 /**
@@ -20,10 +23,12 @@ public enum Repository implements DirectoryCallback
     private FileDictionary      _fileDict;
     private DirectoryMonitor    _dirMonitor;
     
+    private TaskQueue           _jobQ;
+    
     
     private Repository()
     {
-        //
+        _jobQ = new TaskQueue(null);
     }
     
     public String getRootPath()
@@ -31,7 +36,7 @@ public enum Repository implements DirectoryCallback
         return _fileDict.getRootPath();
     }
     
-    public void setUpRoot(String rootPath) throws Exception
+    public void setUpRoot(String rootPath, boolean monitoring) throws Exception
     {
         _fileDict = new FileDictionary(rootPath);
         _fileDict.reload();
@@ -39,13 +44,19 @@ public enum Repository implements DirectoryCallback
         if( _dirMonitor != null )
         {
             _dirMonitor.close();
+            _dirMonitor = null;
         }
         
-        _dirMonitor = new DirectoryMonitor(Paths.get(rootPath), true, this);
+        if( monitoring )
+            _dirMonitor = new DirectoryMonitor(Paths.get(rootPath), true, this);
+        
+        _jobQ.startQueue(1, "Worker");
     }
     
     public void close()
     {
+        _jobQ.clearAllJob();
+        
         if( _dirMonitor != null )
         {
             _dirMonitor.close();
@@ -56,6 +67,11 @@ public enum Repository implements DirectoryCallback
     public FileDictionary getFileDictionary()
     {
         return _fileDict;
+    }
+    
+    public String getAbsolutePath(String uniquePath)
+    {
+        return getRootPath() + uniquePath;
     }
 
     @Override
@@ -72,5 +88,10 @@ public enum Repository implements DirectoryCallback
             _fileDict.addEntry(file);
         
         // TODO 연결된 클라이언트에 전달하기
+    }
+
+    public void pushTask(ITask task)
+    {
+        _jobQ.pushTask(task);
     }
 }

@@ -199,7 +199,7 @@ public class TCPClient implements IChannelEventHandle
         _connected = -1;
     }
     
-    public String getLocalServerIp()
+    public String localAddress()
     {
     	try
     	{
@@ -224,30 +224,7 @@ public class TCPClient implements IChannelEventHandle
     	
     	return null;
     }
-    
-    public String localAddress()
-    {
-        String ipAddr = null;
-        
-        try
-        {
-            InetAddress ip = InetAddress.getLocalHost();
-            InetAddress ip2 = InetAddress.getLoopbackAddress();
-            
-            String hostName = ip.getHostName();
-            InetAddress ip3 = InetAddress.getByName(hostName);
-            InetAddress[] ip4 = InetAddress.getAllByName(hostName);
 
-            ipAddr = ip.getHostAddress();
-        }      
-        catch(Exception xe)
-        {    
-            xe.printStackTrace();
-        }
-
-        return ipAddr;
-    }
-    
     public SocketAddress remoteAddress()
     {
         return _channel != null ? _channel.remoteAddress() : null;

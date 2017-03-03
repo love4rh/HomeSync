@@ -1,12 +1,17 @@
 package com.tool4us.homesync.client;
 
+import static com.tool4us.util.CommonTool.CT;
 import static com.tool4us.homesync.file.Repository.RT;
 
+import com.tool4us.homesync.file.CompResult;
 import com.tool4us.homesync.file.FileElement;
 import com.tool4us.homesync.handler.TypeConstant;
+import com.tool4us.homesync.task.GettingFileTask;
 import com.tool4us.net.client.TCPClient;
 import com.tool4us.net.common.Protocol;
 import com.tool4us.net.handler.CommonExecutor;
+import com.tool4us.util.AppSetting;
+import com.tool4us.util.FileTool;
 
 import io.netty.channel.ConnectTimeoutException;
 
@@ -18,55 +23,60 @@ import io.netty.channel.ConnectTimeoutException;
  */
 public class HomeSyncClient extends TCPClient
 {
-    /**
-     * 최근에 접속했던 서버 IP
-     */
-    private String      _lastServer = null;
-    private String      _foundServer = null;
+    public static final String      OPT_SYNC_FOLDER = "syncfolder";
+    public static final String      OPT_LAST_SERVER = "lastServer";
     
-    private String      _rootPath = null;
+    private AppSetting  _setting = null;
     
     
     public HomeSyncClient()
     {
         super( CommonExecutor.newInstance("com.tool4us.homesync.handler") );
         
-        // TODO 이전 수행 정보 읽어 오기. _lastServer 등 설정
-        
-        _lastServer = "192.168.0.24";
-        _rootPath = "/Volumes/DataBox/Temporary/ClientSync";
+        _setting = new AppSetting(CT.getAppPath("synclient.cfg"));
     }
     
     public void start() throws Exception
     {
-        RT.setUpRoot(_rootPath);
+        _setting.load();
+
+        // "/Volumes/DataBox/Temporary/ClientSync";
+        RT.setUpRoot(_setting.getValue(OPT_SYNC_FOLDER, "C:\\temp\\clientsync"), false);
     }
     
     public void close()
     {
-        this.disconnect();
+        try
+        {
+            _setting.save();
+        }
+        catch(Exception xe)
+        {
+            xe.printStackTrace();
+        }
         
-        // _foundServer를 last server로 저장
+        this.disconnect();
     }
     
     public boolean findServer(int port)
     {
-        String localIp = this.getLocalServerIp(); // localAddress();
+        String localIp = this.localAddress();
         Protocol helloMsg = Protocol.newProtocol(TypeConstant.HELLO, localIp);
         
         localIp = localIp.substring(0, localIp.lastIndexOf('.') + 1);
         
         boolean found = false;
+        String lastServer = _setting.getValue(OPT_LAST_SERVER);
+        
         for(int i = 1; !found && i < 255; ++i)
         {
             String checkIp = localIp + i;
             
             if( i == 1 )
             {
-                if( _lastServer == null )
+                if( lastServer == null || lastServer.isEmpty() )
                     continue;
-
-                checkIp = _lastServer;
+                checkIp = lastServer;
             }
 
             try
@@ -99,8 +109,7 @@ public class HomeSyncClient extends TCPClient
             else
             {
                 System.out.println("check " + checkIp + ", that's it.");
-                
-                _foundServer = checkIp;
+                _setting.setValue(OPT_LAST_SERVER, checkIp);
             }
         }
 
@@ -138,6 +147,8 @@ public class HomeSyncClient extends TCPClient
                     
                     System.out.print("Comp: " + compResult + " --> ");
                     fe.debugOut();
+                    
+                    this.pushTask(compResult, fe);;
                 }
             }
             else
@@ -148,6 +159,25 @@ public class HomeSyncClient extends TCPClient
         catch(Exception xe)
         {
             xe.printStackTrace();
+        }
+    }
+    
+    private void pushTask(int taskType, FileElement elem)
+    {
+     // 파일을 요청해 받아와야 하는 경우
+        if( taskType == CompResult.I_HAVE || taskType == CompResult.DIFF_HAVE )
+        {
+            if( elem.isDirectory() )
+            {
+                FileTool.makeDir(elem.getAbsolutePath(RT.getRootPath()), false);
+            }
+            else
+                RT.pushTask( new GettingFileTask(elem.getKey(), this) );
+        }
+        // 삭제해야 하는 경우임
+        else if( taskType == CompResult.YOU_HAVE )
+        {
+            
         }
     }
     

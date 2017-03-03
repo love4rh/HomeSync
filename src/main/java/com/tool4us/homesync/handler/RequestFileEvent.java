@@ -3,11 +3,8 @@ package com.tool4us.homesync.handler;
 import static com.tool4us.net.common.NetSetting.NS;
 import static com.tool4us.homesync.file.Repository.RT;
 
-import java.util.List;
+import java.io.File;
 
-import com.tool4us.homesync.file.CompResult;
-import com.tool4us.homesync.file.FileDictionary;
-import com.tool4us.homesync.file.FileElement;
 import com.tool4us.net.common.ErrorCode;
 import com.tool4us.net.common.ISession;
 import com.tool4us.net.common.Protocol;
@@ -52,14 +49,25 @@ public class RequestFileEvent extends MessageHandler
     {
         String uniquePath = (String) msg.getParameter(0);
                 
-        NS.info(session, "Compare");
+        NS.info(session, "ReqFile", uniquePath);
         
         Protocol rMsg = Protocol.newProtocol(TypeConstant.RES_FILE);
         
-        rMsg.addParameter((byte) 0x01);
+        File file = new File(RT.getAbsolutePath(uniquePath));
         
-        // rMsg.addParameter(paramVal);
-        
+        if( file.exists() )
+        {
+            rMsg.addParameter((byte) 0x01);
+            rMsg.addParameter(file);
+            rMsg.addParameter(file.lastModified());
+            rMsg.addParameter(uniquePath);
+        }
+        else
+        {
+            writeReplyProtocol(rMsg, ErrorCode.errFileNotExist);
+            rMsg.addParameter(uniquePath);
+        }
+
         return rMsg;
     }
 }

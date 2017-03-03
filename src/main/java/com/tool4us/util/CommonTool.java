@@ -42,6 +42,18 @@ public enum CommonTool
         return modulePath;
     }
     
+    public String getAppPath(String sub)
+    {
+        String appPath = getAppPath();
+        
+        if( sub != null )
+        {
+            appPath += File.separator + sub;
+        }
+        
+        return appPath;
+    }
+    
     /**
      * Returns the defined value if the value is null.
      * 값이 null인 경우 지정된 다른 값을 반환
@@ -67,6 +79,14 @@ public enum CommonTool
             return "";
 
         return text.replace("\r\n", "\\n").replace("\r", "\\n").replace("\n", "\\n");
+    }
+    
+    public String makeWrapped(String text)
+    {
+        if( text == null || text.isEmpty() )
+            return "";
+
+        return text.replace("\\n", "\n");
     }
     
     /**
