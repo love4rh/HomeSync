@@ -1,6 +1,7 @@
 package com.tool4us.homesync.file;
 
 import static java.nio.file.StandardWatchEventKinds.*;
+import static com.tool4us.net.common.NetSetting.NS;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -48,7 +49,10 @@ public enum Repository implements DirectoryCallback
         }
         
         if( monitoring )
+        {
             _dirMonitor = new DirectoryMonitor(Paths.get(rootPath), true, this);
+            _dirMonitor.doMonitoring();
+        }
         
         _jobQ.startQueue(1, "Worker");
     }
@@ -73,12 +77,21 @@ public enum Repository implements DirectoryCallback
     {
         return getRootPath() + uniquePath;
     }
+    
+    public void addOrUpdateEntry(File file)
+    {
+        _fileDict.addEntry(file);
+    }
+    
+    public void removeEntry(File file)
+    {
+        _fileDict.removeEntry(file);
+    }
 
     @Override
     public void onChange(Kind<?> kind, Path path)
     {
-        // TODO Auto-generated method stub
-        System.out.format("RT --> %s: %s\n", kind.name(), path);
+        NS.info(null, "FileChanged", kind.name(), path);
         
         File file = path.toFile();
         

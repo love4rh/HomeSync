@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.tool4us.logging.Logs;
+
 
 
 /**
@@ -18,6 +20,9 @@ public class AppClient
     public static void main(String[] args)
     {
         System.out.println("HomeSync Client Test Console:");
+        
+        Logs.initDefault(null, "ClientSync");
+        Logs.addConsoleLogger();
         
         try
         {

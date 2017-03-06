@@ -66,6 +66,9 @@ public class ReceiveFileEvent extends MessageHandler
                 {
                     FileTool.moveFile(sFile, tFile);
                     tFile.setLastModified(mTime);
+                    
+                    NS.info(session, "ReceiveFile", "Updated", uniquePath);
+                    RT.addOrUpdateEntry(tFile);
                 }
                 catch(Exception xe)
                 {

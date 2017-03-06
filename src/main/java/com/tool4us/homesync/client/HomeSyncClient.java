@@ -1,6 +1,9 @@
 package com.tool4us.homesync.client;
 
 import static com.tool4us.util.CommonTool.CT;
+
+import java.io.File;
+
 import static com.tool4us.homesync.file.Repository.RT;
 
 import com.tool4us.homesync.file.CompResult;
@@ -135,6 +138,8 @@ public class HomeSyncClient extends TCPClient
                 final int vCount = 5;
                 int count = (Integer) rMsg.getParameter(1);
                 
+                System.out.println("Count for sync: " + count);
+                
                 for(int i = 0; i < count; ++i)
                 {
                     int compResult = (Integer) rMsg.getParameter(i * vCount + 2);
@@ -169,7 +174,12 @@ public class HomeSyncClient extends TCPClient
         {
             if( elem.isDirectory() )
             {
-                FileTool.makeDir(elem.getAbsolutePath(RT.getRootPath()), false);
+                String elemPath = elem.getAbsolutePath(RT.getRootPath());
+
+                if( FileTool.makeDir(elemPath, false) )
+                {
+                    RT.addOrUpdateEntry(new File(elemPath));
+                }
             }
             else
                 RT.pushTask( new GettingFileTask(elem.getKey(), this) );

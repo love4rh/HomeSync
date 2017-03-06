@@ -256,6 +256,8 @@ public class AppHomeSync extends JFrame
 	
 	public void stopServer()
 	{
+	    RT.close();
+
 	    try
         {
             _setting.save();

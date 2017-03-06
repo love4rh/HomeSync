@@ -48,8 +48,10 @@ public class DirectoryMonitor
     private final WatchService watcher;
     private final Map<WatchKey, Path> keys;
     private final boolean recursive;
+    
     private boolean trace = false;
     private DirectoryCallback _callback = null;
+    private Thread _monitor = null;
 
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event)
@@ -70,16 +72,17 @@ public class DirectoryMonitor
 
             if (prev == null)
             {
-                System.out.format("register: %s\n", dir);
+                System.out.format("register1: %s\n", dir);
             }
             else
             {
                 if (!dir.equals(prev))
-                {
                     System.out.format("update: %s -> %s\n", prev, dir);
-                }
             }
         }
+        else
+            System.out.format("register2: %s\n", dir);
+        
         keys.put(key, dir);
     }
 
@@ -126,6 +129,20 @@ public class DirectoryMonitor
         // enable trace after initial registration
         this.trace = true;
     }
+    
+    void doMonitoring()
+    {
+        _monitor = new Thread()
+        {
+            @Override
+            public void run()
+            {
+                processEvents();
+            }
+        };
+        
+        _monitor.start();
+    }
 
     /**
      * Process all events for keys queued to the watcher
@@ -169,7 +186,8 @@ public class DirectoryMonitor
                 Path child = dir.resolve(name);
 
                 // print out event
-                System.out.format("%s: %s\n", kind.name(), child);
+                // System.out.format("%s: %s\n", kind.name(), child);
+
                 if( _callback != null )
                     _callback.onChange(kind, child);
 
@@ -207,6 +225,12 @@ public class DirectoryMonitor
     {
         try
         {
+            if( _monitor != null )
+            {
+                _monitor.interrupt();
+                _monitor = null;
+            }
+
             this.watcher.close();
             this.keys.clear();
         }

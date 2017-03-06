@@ -27,7 +27,9 @@ public class FileTool
         if( includeFile )
             path = path.substring(0, Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/")) );
         
-        return new File(path).mkdirs();
+        File dir = new File(path);
+        
+        return dir.exists() || dir.mkdirs();
     }    
     
     /**
