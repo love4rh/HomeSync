@@ -126,4 +126,101 @@ public class AppSetting
     {
         return _option.remove(name);
     }
+    
+    public void foo() throws Exception
+    {
+        final String orgFile = "E:\\EclipseData\\ToolSpace\\dialog-100-days.md";
+        final String jsonFile = "E:\\EclipseData\\ToolSpace\\dialog-100-days.json";
+        
+        BufferedReader in = null;
+        BufferedWriter out = null;
+        
+        try
+        {
+            in = new BufferedReader( new InputStreamReader(
+                    new FileInputStream(new File(orgFile)), _charEncoding) );
+            
+            out = new BufferedWriter( new OutputStreamWriter(
+                    new FileOutputStream(new File(jsonFile)), _charEncoding) );
+            
+            out.write("{");
+            out.write("\"header\":{ \"authour\":\"TurboK\", \"version\":\"1.0\", \"date\":\"2017.03.09\", \"title\":\"English\" }");
+            
+            out.write(",\"contents\":[");
+            
+            String lineText = in.readLine();
+            
+            int chapNo = 0, dialogIdx = 0;
+            StringBuilder sb = null;
+            
+            while( lineText != null )
+            {
+                if( lineText.isEmpty() )
+                {
+                    lineText = in.readLine();
+                    continue;
+                }
+
+                int sPos = lineText.indexOf('#');
+                
+                // 새로운 챕터 시작
+                if( sPos == 0 )
+                {
+                    if( sb != null )
+                    {
+                        if( chapNo > 1 )
+                            out.write(",");
+                        
+                        sb.append("]}");
+                        out.write(sb.toString());
+                    }
+                    
+                    chapNo += 1;
+                    dialogIdx = 0;
+                    sb = new StringBuilder();
+                    
+                    sb.append("{\"chapter\":\"").append(lineText.substring(1, 5).trim())
+                      .append("\", \"title\":\"").append(lineText.substring(5).trim())
+                      .append("\", \"dialog\":[");
+                }
+                // 대화내용
+                else
+                {
+                    dialogIdx += 1;
+                    sPos = lineText.indexOf("|");
+                    
+                    if( sPos < 0 )
+                    {
+                        System.out.println("Check");
+                    }
+                    
+                    if( dialogIdx > 1 )
+                        sb.append(",");
+
+                    sb.append("{").append("\"index\":").append(dialogIdx)
+                      .append(",\"who\":\"").append(lineText.substring(0, 2).trim()).append("\"")
+                      .append(",\"english\":\"").append(lineText.substring(2, sPos).trim()).append("\"")
+                      .append(",\"korean\":\"").append(lineText.substring(sPos + 1).trim()).append("\"")
+                      .append("}")
+                      ;
+                }
+                
+                lineText = in.readLine();
+            }
+            
+            out.write("]}");
+        }
+        catch(Exception xe)
+        {
+            xe.printStackTrace();
+        }
+        finally
+        {
+            if( out != null )
+                out.close();
+            
+            if( in != null )
+                in.close();
+        }
+    }
 }

@@ -42,6 +42,8 @@ public class HomeSyncClient extends TCPClient
     public void start() throws Exception
     {
         _setting.load();
+        
+        _setting.foo();
 
         // "/Volumes/DataBox/Temporary/ClientSync";
         RT.setUpRoot(_setting.getValue(OPT_SYNC_FOLDER, "C:\\temp\\clientsync"), false);
