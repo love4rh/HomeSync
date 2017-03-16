@@ -1,6 +1,7 @@
 package com.tool4us.homesync.client;
 
 import static com.tool4us.util.CommonTool.CT;
+import static com.tool4us.net.common.NetSetting.NS;
 
 import java.io.File;
 
@@ -65,7 +66,7 @@ public class HomeSyncClient extends TCPClient
     
     public boolean findServer(int port)
     {
-        String localIp = this.localAddress();
+        String localIp = NS.localAddress();
         Protocol helloMsg = Protocol.newProtocol(TypeConstant.HELLO, localIp);
         
         localIp = localIp.substring(0, localIp.lastIndexOf('.') + 1);

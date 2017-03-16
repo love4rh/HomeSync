@@ -4,6 +4,9 @@ import static com.tool4us.util.CommonTool.CT;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 import com.tool4us.logging.Logs;
 
@@ -65,6 +68,36 @@ public enum NetSetting
             _workingDir.mkdir();
         
         _readTimeOut = readTimeOut;
+    }
+    
+    /**
+     * 실행되고 있는 장비의 유효한 IP 주소 반환. xxx.xxx.xxx.xxx
+     * @return
+     */
+    public String localAddress()
+    {
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    
+                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress())
+                    {
+                        return inetAddress.getHostAddress().toString();
+                    }
+                }
+            }
+        }
+        catch (Exception xe)
+        {
+            xe.printStackTrace();
+        }
+        
+        return null;
     }
     
     public boolean isValid()
