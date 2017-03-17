@@ -6,6 +6,7 @@ log/
 
 .project
 .classpath
+data/
 
 *.class
 *.cfg

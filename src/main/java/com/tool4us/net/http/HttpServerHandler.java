@@ -1,5 +1,7 @@
 package com.tool4us.net.http;
 
+import static com.tool4us.net.common.NetSetting.NS;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -134,7 +136,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object>
                         }
                         catch( Exception e )
                         {
-                            //
+                            NS.trace(null, e);
                         }
 
                         params.put(data.getName(), paramVal);
@@ -149,8 +151,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object>
                 HTTPServiceHandle reqHandle = getHandler(uriPath);
                 if( reqHandle != null )
                 {
+                    NS.info(null, "Request", uriPath);
+                    
+                    // TODO parameter 목록 표시
+                    
+                    Responser resEx = new Responser();
                     Requester reqEx = new Requester(_request, params, ctx);
-                    Responser resEx = new Responser(); 
     
                     try
                     {
@@ -163,14 +169,14 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object>
                     }
                     catch( Exception e )
                     {
-                        e.printStackTrace();
-                        
+                        NS.trace(null, e);
                         ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
                     }
                 }
                 else
                 {
-                    // TODO 오류 메시지 전송
+                    NS.warn(null, "Invalid API", uriPath);
+
                     ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
                 }
             }
