@@ -29,14 +29,18 @@ public class DownloadHandle implements HTTPServiceHandle
         res.setStatus(HttpResponseStatus.OK);
 
         String returnJson = "";
+        String code = "";
         BufferedReader in = null;
         
         try
         {
             StringBuilder sb = new StringBuilder();
             
-            String code = req.parameter("code");
+            code = req.parameter("code");
+
             String dataFilePath = CT.getAppPath("data/");
+            
+            NS.info(null, "Download Request", code);
             
             if( "cm001".equals(code) )
             {
@@ -49,7 +53,7 @@ public class DownloadHandle implements HTTPServiceHandle
             
             in = new BufferedReader( new InputStreamReader(
                     new FileInputStream(new File(dataFilePath)), "UTF-8") );
-            
+
             String lineText = in.readLine();
             while( lineText != null && !lineText.isEmpty() )
             {
@@ -62,7 +66,7 @@ public class DownloadHandle implements HTTPServiceHandle
         }
         catch(Exception xe)
         {
-            NS.trace(null, xe);
+            NS.warn(null, xe.getMessage(), code);
             returnJson = "{ \"error\": \"" + xe.getMessage() + "\" }";
         }
         finally
