@@ -10,7 +10,8 @@ import static com.tool4us.homesync.file.Repository.RT;
 import com.tool4us.homesync.file.CompResult;
 import com.tool4us.homesync.file.FileElement;
 import com.tool4us.homesync.handler.TypeConstant;
-import com.tool4us.homesync.task.GettingFileTask;
+import com.tool4us.homesync.task.*;
+
 import com.tool4us.net.client.TCPClient;
 import com.tool4us.net.common.Protocol;
 import com.tool4us.net.handler.CommonExecutor;
@@ -43,8 +44,6 @@ public class HomeSyncClient extends TCPClient
     public void start() throws Exception
     {
         _setting.load();
-        
-        _setting.foo();
 
         // "/Volumes/DataBox/Temporary/ClientSync";
         RT.setUpRoot(_setting.getValue(OPT_SYNC_FOLDER, "C:\\temp\\clientsync"), false);
@@ -190,7 +189,9 @@ public class HomeSyncClient extends TCPClient
         // 삭제해야 하는 경우임
         else if( taskType == CompResult.YOU_HAVE )
         {
-            
+        	String absPathName = elem.getAbsolutePath(RT.getRootPath());
+        	
+        	RT.pushTask( new DeleteFileTask(absPathName) );
         }
     }
     

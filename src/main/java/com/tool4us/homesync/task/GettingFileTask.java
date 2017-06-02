@@ -33,7 +33,7 @@ public class GettingFileTask extends ITask
     @Override
     public String toString()
     {
-        return "GET" + _uniquePath;
+        return "GET:" + _uniquePath;
     }
     
     @Override
